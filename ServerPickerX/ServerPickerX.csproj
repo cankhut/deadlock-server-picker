@@ -28,8 +28,8 @@
         <PackageProjectUrl>https://github.com/cankhut/deadlock-server-picker</PackageProjectUrl>
         <RepositoryUrl>https://github.com/cankhut/deadlock-server-picker</RepositoryUrl>
         <ApplicationIcon>Assets\favicon.ico</ApplicationIcon>
-        <AssemblyVersion>2.1.1.0</AssemblyVersion>
-        <FileVersion>2.1.1.0</FileVersion>
+        <AssemblyVersion>2.1.2.0</AssemblyVersion>
+        <FileVersion>2.1.2.0</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>
