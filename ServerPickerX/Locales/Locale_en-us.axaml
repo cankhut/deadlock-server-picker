@@ -104,4 +104,6 @@
   <x:String x:Key="LateNightNoticeDialogue">It's late where you are, so fewer people are playing nearby. With most servers blocked, finding a match can take longer. That's normal and not caused by the app. If queues get too long, unblock a few servers close to you.</x:String>
   <x:String x:Key="DontShowAgain">Don't show again</x:String>
   <x:String x:Key="OkDontAskAgain">Ok, don't ask again</x:String>
+  <x:String x:Key="ShowHiddenNotices">Show Hidden Notices</x:String>
+  <x:String x:Key="ShowHiddenNoticesToolTip">Bring back every notice you chose not to see again</x:String>
 </ResourceDictionary>

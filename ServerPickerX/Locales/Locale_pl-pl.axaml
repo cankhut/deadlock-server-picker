@@ -104,4 +104,6 @@
   <x:String x:Key="LateNightNoticeDialogue">U ciebie jest późno, więc w pobliżu gra mniej osób. Gdy większość serwerów jest zablokowana, znalezienie meczu może potrwać dłużej. To normalne i nie jest winą aplikacji. Jeśli kolejka jest zbyt długa, odblokuj kilka serwerów w pobliżu.</x:String>
   <x:String x:Key="DontShowAgain">Nie pokazuj ponownie</x:String>
   <x:String x:Key="OkDontAskAgain">Ok, nie pytaj ponownie</x:String>
+  <x:String x:Key="ShowHiddenNotices">Pokaż ukryte powiadomienia</x:String>
+  <x:String x:Key="ShowHiddenNoticesToolTip">Przywróć wszystkie ukryte powiadomienia</x:String>
 </ResourceDictionary>

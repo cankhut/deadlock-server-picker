@@ -104,4 +104,6 @@
   <x:String x:Key="LateNightNoticeDialogue">お住まいの地域は深夜のため、近くでプレイしている人が少なくなっています。ほとんどのサーバーをブロックしていると、マッチングに時間がかかることがあります。これは正常な動作で、アプリが原因ではありません。待ち時間が長すぎる場合は、近くのサーバーをいくつかブロック解除してください。</x:String>
   <x:String x:Key="DontShowAgain">今後表示しない</x:String>
   <x:String x:Key="OkDontAskAgain">Ok、今後は確認しない</x:String>
+  <x:String x:Key="ShowHiddenNotices">非表示の通知を再表示</x:String>
+  <x:String x:Key="ShowHiddenNoticesToolTip">非表示にした通知をすべて再表示</x:String>
 </ResourceDictionary>

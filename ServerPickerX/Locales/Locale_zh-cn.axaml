@@ -104,4 +104,6 @@
   <x:String x:Key="LateNightNoticeDialogue">你所在的地区已是深夜，附近在玩的人更少。屏蔽了大部分服务器时，匹配可能需要更长时间。这是正常现象，并非应用造成。如果排队时间太长，请解除屏蔽几个离你较近的服务器。</x:String>
   <x:String x:Key="DontShowAgain">不再显示</x:String>
   <x:String x:Key="OkDontAskAgain">Ok，不再询问</x:String>
+  <x:String x:Key="ShowHiddenNotices">重新显示提示</x:String>
+  <x:String x:Key="ShowHiddenNoticesToolTip">重新显示所有已隐藏的提示</x:String>
 </ResourceDictionary>

@@ -19,11 +19,13 @@ It replaces the server table with a card grid, adds light/dark themes, preset sh
 tray support. The following are specific to this codebase and are not obvious from reading it:
 
 - **Firewall rules outlive the process.** They are not tied to the app's lifetime, so blocked servers stay
-blocked after the app closes, after a reboot and after the app is deleted. Any feature touching blocked state
-must treat the saved state as possibly stale, which is what `ReconcileBlockedStateAsync` is for.
+blocked after the app closes and after the app is deleted, and on Windows after a reboot too. Most Linux
+distributions drop iptables rules on a reboot. Any feature touching blocked state must treat the saved state
+as possibly stale, which is what `ReconcileBlockedStateAsync` is for, on both platforms.
 - **Never wipe the whole firewall.** `netsh advfirewall reset` and `iptables -F` destroy every rule on the
 machine, including rules other applications depend on. Both were used here previously and both were removed
-deliberately. Remove rules by the `server_picker_x_` name prefix on Windows and by explicit `-D` deletion on Linux.
+deliberately. Remove rules by the `server_picker_x_` name prefix on Windows, and on Linux by explicit `-D` deletion of
+rules carrying the `server_picker_x` comment.
 The prefix keeps the old name on purpose: renaming it would orphan every rule created by earlier versions.
 - **A blocked server cannot be pinged.** The rule blocks all protocols, so ICMP goes with it and every probe
 fails. The ping sweep skips blocked servers, and `RestoreReading` keeps the last good reading instead of
@@ -48,13 +50,28 @@ ones to the opposite, persists, and shows the user a named error (up to six serv
 shared cause is assumed and the message stays general). The `ISystemFirewallService` signatures are
 unchanged on purpose, so the Moq tests keep working. Never let a firewall call fail quietly: a server
 the user believes is blocked, and is not, is the one failure that matters.
-- **Linux block and unblock are idempotent.** Each pass reads `iptables -S INPUT` first
-(`ReadDropRulesAsync`: exactly six tokens, `-A INPUT -s <address> -j DROP`, `/32` stripped) and only
-adds rules that are missing, only deletes rules that exist, every copy. Rules of any other shape are
-never counted and so never touched. Blocking twice used to leave two rules where unblocking removed
-one, and "Unblock all" passes every server, blocked or not, so deleting a rule that is not there must
-never count as a failure. Mutating calls carry `-w 5` for the xtables lock. Read both stdout and
-stderr *before* awaiting the exit, or a full pipe deadlocks the child forever.
+- **Linux rules are outbound, inserted at the top, and carry a comment.** A block is
+`iptables -I OUTPUT -d <addresses> -m comment --comment server_picker_x -j DROP`, matching the Windows
+rules, which are outbound too. 2.1.2 and earlier appended `-A INPUT -s <address> -j DROP` instead, and
+wherever something earlier in the same chain accepts established traffic (ufw does) that did nothing: the
+reply to traffic the PC started is accepted before an appended rule is ever reached. This was reproduced on a real
+kernel, nf_tables and legacy backends both, before the change. Do not go back to appending, and do not go
+back to INPUT.
+Every pass reads `iptables -w 5 -S OUTPUT` and `-S INPUT` first (`ParseOutboundRules`, `ParseInboundRules`:
+exact token shapes, single addresses only, `/32` stripped, anything else is someone else's) and only adds
+what is missing and only deletes what exists, every copy. Rules the old versions added are still read and
+still deleted when their server is unblocked, so an upgrade leaves nothing stranded, but nothing adds them
+any more. Deleting a rule that is not there must never count as a failure, because "Unblock all" passes
+every server. Read both stdout and stderr *before* awaiting the exit, or a full pipe deadlocks the child.
+`GetBlockedServersAsync` reads the rules back, so Linux now reconciles like Windows. It runs while the
+server list loads and uses `sudo -n`, so it can never wait on a password prompt; when it cannot read the
+rules it returns null and the saved state stands. **Remove App Rules** also removes every rule with the
+comment that no listed server owns (relays Valve has since dropped). The comment must stay plain letters,
+digits and `_`, or iptables quotes it in `-S` output and the app stops recognising its own rules;
+`LinuxFirewallServiceTests` guards that.
+- **Hidden notices come back from Settings.** **Show Hidden Notices** clears every `*_notice_hidden`
+flag through `JsonSetting.ShowHiddenNoticesAgainAsync`, and is greyed out while `HasHiddenNotices()` is
+false. A new notice with a "don't show again" choice must be added to both, or it can never be undone.
 - **Trimming is fragile**, as the csproj comment says. Reflection based code can compile and then fail only in
 a published build, so test the publish output rather than a debug run.
 - **Locale keys live in nine files** under `Locales/`. A key added to one must be added to all nine.
@@ -118,7 +135,7 @@ window and the progress bar cannot paint. In practice it is about a second, neve
 - Firewall rule names come from `Description` with spaces stripped, while identity elsewhere is `Name`.
 Two servers sharing a description would collide. No such pair exists in Valve's list.
 - Preset-apply re-entrancy timing gap; a ping sweep outliving a game switch; undisposed COM RCWs and
-one `CancellationTokenSource` per probe; Linux reset with an empty server list.
+one `CancellationTokenSource` per probe.
 - The Presets window headers "ID" and "Location" are English-only, though translations exist.
 
 ## Build / Publish Guidelines

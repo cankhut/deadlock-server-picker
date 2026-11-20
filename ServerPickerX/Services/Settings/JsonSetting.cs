@@ -460,6 +460,24 @@ namespace ServerPickerX.Settings
             await SaveSettingsAsync();
         }
 
+        // A method rather than a property, so it never ends up in settings.json
+        public bool HasHiddenNotices()
+        {
+            return late_night_notice_hidden || game_switch_notice_hidden || cluster_switch_notice_hidden;
+        }
+
+        // Undoes every "Don't show again" and "Ok, don't ask again" at once, from Settings.
+        // The late night notice keeps its once a day limit, so one already shown today
+        // waits until tomorrow
+        public async Task ShowHiddenNoticesAgainAsync()
+        {
+            late_night_notice_hidden = false;
+            game_switch_notice_hidden = false;
+            cluster_switch_notice_hidden = false;
+
+            await SaveSettingsAsync();
+        }
+
         public List<string> GetBlockedServerKeysByGameMode()
         {
             if (string.IsNullOrWhiteSpace(game_mode))

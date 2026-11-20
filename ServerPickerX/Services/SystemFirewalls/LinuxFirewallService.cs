@@ -24,15 +24,37 @@ namespace ServerPickerX.Services.SystemFirewalls
         // asked for and did not get
         private const string LockWait = "-w 5";
 
+        // Every rule this app adds carries this comment. It is how the app tells its own
+        // rules apart from everyone else's, the way the Windows rules carry the
+        // server_picker_x_ name prefix, and it is plain enough that iptables never quotes it
+        public const string RuleComment = "server_picker_x";
+
+        // Outbound, like the Windows rules, and inserted at the top of the chain instead of
+        // appended to it. A stateful firewall such as ufw accepts replies to traffic this PC
+        // started before an appended rule is ever reached, so the inbound DROP that 2.1.2
+        // and earlier appended did nothing at all on those systems. An outbound rule at the
+        // top stops the packet before it leaves, whatever the rest of the chain says
+        private const string OutboundRule = "OUTPUT -d {0} -m comment --comment " + RuleComment + " -j DROP";
+
+        // The rule 2.1.2 and earlier added. Nothing adds it any more, but rules outlive the
+        // app, so it is still read, and still taken off when its server is unblocked
+        private const string InboundRule = "INPUT -s {0} -j DROP";
+
+        // How "iptables -S" prints the two rules above, token for token. The null is where
+        // the address goes. A rule with anything more or less in it is someone else's
+        private static readonly string?[] OutboundShape =
+            ["-A", "OUTPUT", "-d", null, "-m", "comment", "--comment", RuleComment, "-j", "DROP"];
+
+        private static readonly string?[] InboundShape =
+            ["-A", "INPUT", "-s", null, "-j", "DROP"];
 
         // Both passes read the rules once first, then only add what is missing and
         // only remove what is there. Every server is tried, and the ones that fail
         // are reported together at the end so the app can show each server as it
-        // really is. A failed iptables call used to be written to the log while the
-        // app carried on as though it had worked
+        // really is
         public async Task BlockServersAsync(ObservableCollection<ServerModel> serverModels)
         {
-            Dictionary<string, int> dropRules = await ReadDropRulesAsync();
+            AppRules rules = await ReadAppRulesAsync();
 
             List<ServerModel> failedServers = [];
 
@@ -40,7 +62,7 @@ namespace ServerPickerX.Services.SystemFirewalls
             {
                 try
                 {
-                    // An empty address list would turn into "-s -j DROP", which
+                    // An empty address list would turn into "-d -m comment ...", which
                     // iptables rejects, so it is reported as the failure it is
                     if (serverModel.RelayModels.Count == 0)
                     {
@@ -48,11 +70,11 @@ namespace ServerPickerX.Services.SystemFirewalls
                     }
 
                     // An address that already has a rule does not get a second one.
-                    // Copies used to pile up when a blocked server was blocked again,
-                    // and unblocking took off only one of them, so the server stayed
-                    // blocked while the app showed it as unblocked
+                    // A rule left by an older version does not count: it may be the
+                    // appended inbound kind that a stateful firewall walks past, so the
+                    // outbound rule is added next to it
                     List<string> missingAddresses = GetAddresses(serverModel)
-                        .Where(address => !dropRules.ContainsKey(address))
+                        .Where(address => rules.Outbound.GetValueOrDefault(address) == 0)
                         .ToList();
 
                     if (missingAddresses.Count == 0)
@@ -60,11 +82,11 @@ namespace ServerPickerX.Services.SystemFirewalls
                         continue;
                     }
 
-                    await RunIptablesAsync($"{LockWait} -A INPUT -s {string.Join(",", missingAddresses)} -j DROP");
+                    await RunIptablesAsync($"{LockWait} -I {string.Format(OutboundRule, string.Join(",", missingAddresses))}");
 
                     foreach (string address in missingAddresses)
                     {
-                        dropRules[address] = 1;
+                        rules.Outbound[address] = 1;
                     }
                 }
                 catch (Exception ex)
@@ -83,7 +105,7 @@ namespace ServerPickerX.Services.SystemFirewalls
 
         public async Task UnblockServersAsync(ObservableCollection<ServerModel> serverModels)
         {
-            Dictionary<string, int> dropRules = await ReadDropRulesAsync();
+            AppRules rules = await ReadAppRulesAsync();
 
             List<ServerModel> failedServers = [];
 
@@ -91,29 +113,7 @@ namespace ServerPickerX.Services.SystemFirewalls
             {
                 try
                 {
-                    // Takes off every copy of every rule for this server's addresses.
-                    // A server with nothing in the firewall needs no command at all:
-                    // iptables treats deleting a rule that is not there as an error,
-                    // and "Unblock all" goes through every server, blocked or not.
-                    // Each round lowers the counts, so this always comes to an end
-                    while (true)
-                    {
-                        List<string> presentAddresses = GetAddresses(serverModel)
-                            .Where(address => dropRules.GetValueOrDefault(address) > 0)
-                            .ToList();
-
-                        if (presentAddresses.Count == 0)
-                        {
-                            break;
-                        }
-
-                        await RunIptablesAsync($"{LockWait} -D INPUT -s {string.Join(",", presentAddresses)} -j DROP");
-
-                        foreach (string address in presentAddresses)
-                        {
-                            dropRules[address]--;
-                        }
-                    }
+                    await RemoveServerRulesAsync(serverModel, rules);
                 }
                 catch (Exception ex)
                 {
@@ -129,52 +129,134 @@ namespace ServerPickerX.Services.SystemFirewalls
             }
         }
 
+        // Takes off every copy of every rule for this server's addresses, the ones this
+        // version adds and the ones older versions added. Hands back how many went
+        private async Task<int> RemoveServerRulesAsync(ServerModel serverModel, AppRules rules)
+        {
+            List<string> addresses = GetAddresses(serverModel).ToList();
+
+            int removed = await RemoveEveryCopyAsync(addresses, rules.Outbound, OutboundRule);
+
+            removed += await RemoveEveryCopyAsync(addresses, rules.Inbound, InboundRule);
+
+            return removed;
+        }
+
+        // A server with nothing in the firewall needs no command at all: iptables treats
+        // deleting a rule that is not there as an error, and "Unblock all" goes through
+        // every server, blocked or not. Each round lowers the counts, so this always
+        // comes to an end
+        private async Task<int> RemoveEveryCopyAsync(IReadOnlyList<string> addresses, Dictionary<string, int> copies, string rule)
+        {
+            int removed = 0;
+
+            while (true)
+            {
+                List<string> presentAddresses = addresses
+                    .Where(address => copies.GetValueOrDefault(address) > 0)
+                    .ToList();
+
+                if (presentAddresses.Count == 0)
+                {
+                    return removed;
+                }
+
+                await RunIptablesAsync($"{LockWait} -D {string.Format(rule, string.Join(",", presentAddresses))}");
+
+                foreach (string address in presentAddresses)
+                {
+                    copies[address]--;
+                }
+
+                removed += presentAddresses.Count;
+            }
+        }
+
         private static IEnumerable<string> GetAddresses(ServerModel serverModel)
             => serverModel.RelayModels.Select(relayModel => relayModel.IPv4).Distinct();
 
-        // The DROP rules on INPUT in the shape this app writes them, as address and
-        // number of copies. Rules of any other shape are not this app's and are
-        // never counted, so they are never touched. When the rules cannot be read
-        // at all nothing has been changed yet, so that failure is all or nothing
-        private async Task<Dictionary<string, int>> ReadDropRulesAsync()
+        // When the rules cannot be read at all nothing has been changed yet, so that
+        // failure is all or nothing
+        private async Task<AppRules> ReadAppRulesAsync(bool mayPrompt = true)
         {
-            string listing = await RunIptablesAsync("-S INPUT");
+            string outbound = await RunIptablesAsync($"{LockWait} -S OUTPUT", mayPrompt);
+            string inbound = await RunIptablesAsync($"{LockWait} -S INPUT", mayPrompt);
 
-            Dictionary<string, int> dropRules = new(StringComparer.Ordinal);
+            return new AppRules(ParseOutboundRules(outbound), ParseInboundRules(inbound));
+        }
+
+        // "-A OUTPUT -d 155.133.226.68/32 -m comment --comment server_picker_x -j DROP",
+        // the rules this version adds, as address and number of copies
+        public static Dictionary<string, int> ParseOutboundRules(string listing)
+            => ParseRules(listing, OutboundShape);
+
+        // "-A INPUT -s 155.133.226.68/32 -j DROP", the rules 2.1.2 and earlier added. They
+        // carry no comment, so the exact shape is all there is to go on
+        public static Dictionary<string, int> ParseInboundRules(string listing)
+            => ParseRules(listing, InboundShape);
+
+        private static Dictionary<string, int> ParseRules(string listing, string?[] shape)
+        {
+            Dictionary<string, int> rules = new(StringComparer.Ordinal);
 
             foreach (string line in listing.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
-                // "-A INPUT -s 155.133.226.68/32 -j DROP"
                 string[] parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                if (parts.Length != 6
-                    || parts[0] != "-A"
-                    || parts[1] != "INPUT"
-                    || parts[2] != "-s"
-                    || parts[4] != "-j"
-                    || parts[5] != "DROP")
+                if (parts.Length != shape.Length)
                 {
                     continue;
                 }
 
-                string address = parts[3].EndsWith("/32", StringComparison.Ordinal)
-                    ? parts[3][..^3]
-                    : parts[3];
+                string? address = null;
+                bool sameShape = true;
 
-                dropRules[address] = dropRules.GetValueOrDefault(address) + 1;
+                for (int i = 0; i < shape.Length; i++)
+                {
+                    if (shape[i] == null)
+                    {
+                        address = parts[i];
+                    }
+                    else if (!string.Equals(parts[i], shape[i], StringComparison.Ordinal))
+                    {
+                        sameShape = false;
+
+                        break;
+                    }
+                }
+
+                if (!sameShape || address == null)
+                {
+                    continue;
+                }
+
+                // iptables prints one address as 155.133.226.68/32. This app only ever adds
+                // rules for single addresses, so a range is someone else's, comment or not
+                if (address.EndsWith("/32", StringComparison.Ordinal))
+                {
+                    address = address[..^3];
+                }
+                else if (address.Contains('/'))
+                {
+                    continue;
+                }
+
+                rules[address] = rules.GetValueOrDefault(address) + 1;
             }
 
-            return dropRules;
+            return rules;
         }
 
         // Runs one iptables command and hands back what it printed. Anything but a
         // clean exit is thrown, with what iptables said, rather than logged and
         // passed over
-        private async Task<string> RunIptablesAsync(string arguments)
+        private async Task<string> RunIptablesAsync(string arguments, bool mayPrompt = true)
         {
             using var process = _processService.CreateProcess("sudo");
 
-            process.StartInfo.Arguments = "iptables " + arguments;
+            // -n stops sudo from asking for a password. Asked, it waits in the terminal the
+            // app was started from, and whatever called it waits with it
+            process.StartInfo.Arguments = (mayPrompt ? "" : "-n ") + "iptables " + arguments;
 
             process.Start();
 
@@ -200,9 +282,9 @@ namespace ServerPickerX.Services.SystemFirewalls
             return stdOut;
         }
 
-        // Deletes only the DROP rules this app added, one per server. The previous
-        // implementation ran "iptables -F", which flushes every rule in the table and
-        // would take unrelated rules, including ones protecting remote access, with it
+        // Deletes only the rules this app added. The previous implementation ran
+        // "iptables -F", which flushes every rule in the table and would take unrelated
+        // rules, including ones protecting remote access, with it
         public async Task<bool> ResetFirewallAsync(ObservableCollection<ServerModel> serverModels)
         {
             bool confirmed = await _messageBoxService.ShowMessageBoxConfirmationAsync(
@@ -218,15 +300,57 @@ namespace ServerPickerX.Services.SystemFirewalls
 
             try
             {
-                await UnblockServersAsync(serverModels);
+                AppRules rules = await ReadAppRulesAsync();
 
-                await _loggerService.LogInfoAsync($"Removed firewall rules for {serverModels.Count} servers");
+                List<ServerModel> failedServers = [];
+
+                int removed = 0;
+
+                foreach (var serverModel in serverModels)
+                {
+                    try
+                    {
+                        removed += await RemoveServerRulesAsync(serverModel, rules);
+                    }
+                    catch (Exception ex)
+                    {
+                        failedServers.Add(serverModel);
+
+                        await _loggerService.LogErrorAsync($"Could not unblock {serverModel.Description}", ex.Message);
+                    }
+                }
+
+                // What is left with the app's comment on it belongs to no server on the list,
+                // an address Valve has since taken off a server. The comment says whose it is,
+                // so it goes too. The older inbound rules carry no comment, so only the ones
+                // for listed servers can be told apart, and those went above
+                try
+                {
+                    List<string> leftoverAddresses = rules.Outbound
+                        .Where(rule => rule.Value > 0)
+                        .Select(rule => rule.Key)
+                        .ToList();
+
+                    removed += await RemoveEveryCopyAsync(leftoverAddresses, rules.Outbound, OutboundRule);
+                }
+                catch (Exception ex)
+                {
+                    // None of these belong to a card, so nothing on screen is wrong because of it
+                    await _loggerService.LogErrorAsync("Could not remove firewall rules left from servers that are gone", ex.Message);
+                }
+
+                if (failedServers.Count > 0)
+                {
+                    throw new FirewallOperationException(failedServers);
+                }
+
+                await _loggerService.LogInfoAsync($"Removed {removed} firewall rules created by this app");
 
                 await _messageBoxService.ShowMessageBoxAsync(
                     _localizationService.GetLocaleValue("MessageBoxInfoTitle"),
                     string.Format(
                         _localizationService.GetLocaleValue("FirewallResetSuccessDialogue"),
-                        serverModels.Count
+                        removed
                         ),
                     MsBox.Avalonia.Enums.Icon.Success
                     );
@@ -240,9 +364,40 @@ namespace ServerPickerX.Services.SystemFirewalls
             }
         }
 
-        // iptables rules carry no marker tying them back to a server, so the saved
-        // state stays authoritative here rather than being reconciled against nothing
-        public Task<List<ServerModel>?> GetBlockedServersAsync(ObservableCollection<ServerModel> serverModels)
-            => Task.FromResult<List<ServerModel>?>(null);
+        // The rules are read back, so the cards show what the firewall really does. Most
+        // distributions drop iptables rules on a reboot, and without this the cards went on
+        // showing servers as blocked that nothing blocked any more. Rules from older
+        // versions count too, they are still in the firewall doing what they did.
+        // This runs while the server list loads, so it never asks for a password: a sudo
+        // prompt would wait in a terminal and hold the load up. When the rules cannot be
+        // read, the saved state is kept, which is how it worked before
+        public async Task<List<ServerModel>?> GetBlockedServersAsync(ObservableCollection<ServerModel> serverModels)
+        {
+            try
+            {
+                AppRules rules = await ReadAppRulesAsync(mayPrompt: false);
+
+                return serverModels
+                    .Where(serverModel => GetAddresses(serverModel).Any(rules.Blocks))
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                await _loggerService.LogWarningAsync("Could not read firewall rules: " + ex.Message);
+
+                return null;
+            }
+        }
+
+        // The rules this app has in the firewall, as address and number of copies
+        private sealed class AppRules(Dictionary<string, int> outbound, Dictionary<string, int> inbound)
+        {
+            public Dictionary<string, int> Outbound { get; } = outbound;
+
+            public Dictionary<string, int> Inbound { get; } = inbound;
+
+            public bool Blocks(string address)
+                => Outbound.GetValueOrDefault(address) > 0 || Inbound.GetValueOrDefault(address) > 0;
+        }
     }
 }

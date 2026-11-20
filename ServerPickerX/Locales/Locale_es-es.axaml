@@ -104,4 +104,6 @@
   <x:String x:Key="LateNightNoticeDialogue">Es tarde donde estás, así que hay menos gente jugando cerca. Con la mayoría de los servidores bloqueados, encontrar partida puede tardar más. Es normal y no lo causa la aplicación. Si las colas se alargan demasiado, desbloquea algunos servidores cercanos.</x:String>
   <x:String x:Key="DontShowAgain">No volver a mostrar</x:String>
   <x:String x:Key="OkDontAskAgain">Ok, no preguntar de nuevo</x:String>
+  <x:String x:Key="ShowHiddenNotices">Mostrar avisos ocultos</x:String>
+  <x:String x:Key="ShowHiddenNoticesToolTip">Volver a mostrar todos los avisos ocultos</x:String>
 </ResourceDictionary>

@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ServerPickerX.Models;
 using ServerPickerX.Services.DependencyInjection;
@@ -17,6 +18,11 @@ namespace ServerPickerX.ViewModels
     {
         public bool VersionCheckOnStartup { get; set; }
 
+        // Whether anything has been hidden with "Don't show again", which is when the
+        // button that brings it all back has something to do
+        [ObservableProperty]
+        private bool hasHiddenNotices;
+
         private readonly ILoggerService _loggerService;
         private readonly IMessageBoxService _messageBoxService;
         private readonly ISystemFirewallService _systemFirewallService;
@@ -31,6 +37,8 @@ namespace ServerPickerX.ViewModels
             _jsonSetting = ServiceLocator.GetRequiredService<JsonSetting>();
 
             VersionCheckOnStartup = _jsonSetting.version_check_on_startup;
+
+            HasHiddenNotices = _jsonSetting.HasHiddenNotices();
         }
 
         // DI constructor, allows inversion of control and unit tests mocking
@@ -47,6 +55,8 @@ namespace ServerPickerX.ViewModels
             _jsonSetting = jsonSetting;
 
             VersionCheckOnStartup = _jsonSetting.version_check_on_startup;
+
+            HasHiddenNotices = _jsonSetting.HasHiddenNotices();
         }
 
         [RelayCommand]
@@ -55,6 +65,13 @@ namespace ServerPickerX.ViewModels
             _jsonSetting.version_check_on_startup = VersionCheckOnStartup;
 
             await _jsonSetting.SaveSettingsAsync();
+        }
+
+        public async Task ShowHiddenNoticesCommand()
+        {
+            await _jsonSetting.ShowHiddenNoticesAgainAsync();
+
+            HasHiddenNotices = false;
         }
 
         public async Task ResetFirewallCommand()

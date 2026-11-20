@@ -104,4 +104,6 @@
   <x:String x:Key="LateNightNoticeDialogue">Det är sent där du är, så färre spelar i närheten. Med de flesta servrar blockerade kan det ta längre tid att hitta en match. Det är normalt och beror inte på appen. Om kön blir för lång kan du avblockera några servrar nära dig.</x:String>
   <x:String x:Key="DontShowAgain">Visa inte igen</x:String>
   <x:String x:Key="OkDontAskAgain">Ok, fråga inte igen</x:String>
+  <x:String x:Key="ShowHiddenNotices">Visa dolda meddelanden</x:String>
+  <x:String x:Key="ShowHiddenNoticesToolTip">Visa alla dolda meddelanden igen</x:String>
 </ResourceDictionary>

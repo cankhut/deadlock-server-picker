@@ -104,4 +104,6 @@
   <x:String x:Key="LateNightNoticeDialogue">Bei dir ist es spät, deshalb spielen in deiner Nähe weniger Leute. Wenn die meisten Server gesperrt sind, kann die Spielersuche länger dauern. Das ist normal und liegt nicht an der App. Wenn die Warteschlange zu lang wird, gib ein paar Server in deiner Nähe frei.</x:String>
   <x:String x:Key="DontShowAgain">Nicht mehr anzeigen</x:String>
   <x:String x:Key="OkDontAskAgain">Ok, nicht mehr fragen</x:String>
+  <x:String x:Key="ShowHiddenNotices">Hinweise wieder anzeigen</x:String>
+  <x:String x:Key="ShowHiddenNoticesToolTip">Alle ausgeblendeten Hinweise wieder anzeigen</x:String>
 </ResourceDictionary>

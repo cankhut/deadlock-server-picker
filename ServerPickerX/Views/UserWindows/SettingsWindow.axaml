@@ -10,7 +10,7 @@
     x:DataType="viewmodels:SettingsWindowViewModel"
     x:Name="Settings"
     Width="420"
-    Height="462"
+    Height="506"
     Title="Settings"
     WindowDecorations="BorderOnly"
     ExtendClientAreaToDecorationsHint="True"
@@ -126,6 +126,18 @@
                           ToolTip.Tip="{DynamicResource AutoApplyOnGameLaunchToolTip}"
                           ToolTip.ShowDelay="300"
                           Click="AutoApplyOnGameLaunchSetting_Click" />
+
+                <!-- Greyed out until something has been hidden with "Don't show again" -->
+                <Grid ColumnDefinitions="110,*" VerticalAlignment="Center">
+                    <Button Grid.Column="1"
+                            Classes="main-btn"
+                            HorizontalAlignment="Left"
+                            IsEnabled="{Binding HasHiddenNotices, FallbackValue=False}"
+                            Command="{Binding ShowHiddenNoticesCommand}"
+                            Content="{DynamicResource ShowHiddenNotices}"
+                            ToolTip.Tip="{DynamicResource ShowHiddenNoticesToolTip}"
+                            ToolTip.ShowDelay="300" />
+                </Grid>
 
                 <Grid ColumnDefinitions="110,*" VerticalAlignment="Center">
                     <Button Grid.Column="1"

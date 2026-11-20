@@ -104,4 +104,6 @@
   <x:String x:Key="LateNightNoticeDialogue">У вас уже поздно, поэтому поблизости играет меньше людей. Когда заблокировано большинство серверов, поиск матча может занять больше времени. Это нормально и не связано с приложением. Если очередь слишком долгая, разблокируйте несколько ближайших серверов.</x:String>
   <x:String x:Key="DontShowAgain">Больше не показывать</x:String>
   <x:String x:Key="OkDontAskAgain">Ok, больше не спрашивать</x:String>
+  <x:String x:Key="ShowHiddenNotices">Показать скрытые уведомления</x:String>
+  <x:String x:Key="ShowHiddenNoticesToolTip">Снова показывать все скрытые уведомления</x:String>
 </ResourceDictionary>
