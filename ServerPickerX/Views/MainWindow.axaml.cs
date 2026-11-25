@@ -1151,6 +1151,16 @@ namespace ServerPickerX.Views
 
             var fetchedRevision = vm.GetServerDataService().GetFetchedRevision();
 
+            // Every server Valve lists for this game right now, by code and name, kept so the
+            // next update from Valve can be compared with it. Taken from the full list, so it is
+            // the same whether the servers are grouped or not
+            Dictionary<string, string> currentServers = new(StringComparer.Ordinal);
+
+            foreach (ServerModel serverModel in vm.GetServerDataService().GetServerData().UnclusteredServers)
+            {
+                currentServers.TryAdd(serverModel.Name, serverModel.Description);
+            }
+
             string appId = _serverDefinitionProvider.GetAppIdByGameMode(_jsonSetting.game_mode);
             
             IReadOnlyList<string> affectedGameModes = _serverDefinitionProvider.GetGameModesByAppId(appId);
@@ -1160,22 +1170,50 @@ namespace ServerPickerX.Views
                 );
 
             // Store the initial revision without a reset when this game has no saved presets yet.
+            // The list goes out in the same write as the revision
             if (localRevision == "-1" && !hasAffectedPresets)
             {
+                _jsonSetting.RememberServerListByGameMode(currentServers);
+
                 await _jsonSetting.SetRevisionByGameModeAsync(fetchedRevision);
                 return;
             }
 
-            // Skip server unblocking and revision sync if local revision is equal to fetched revision
+            // Skip server unblocking and revision sync if local revision is equal to fetched revision.
+            // The list is still kept up to date, at the cost of a write only when it changed: the
+            // first launch of this version, or a game that shares Valve's data with another one
             if (localRevision == fetchedRevision)
             {
+                if (_jsonSetting.RememberServerListByGameMode(currentServers))
+                {
+                    await _jsonSetting.SaveSettingsAsync();
+                }
+
                 return;
+            }
+
+            // Says which servers came and went since the list was last up to date. There is
+            // nothing to compare with the first time, and the message then reads as it always has
+            string message = _localizationService.GetLocaleValue("SyncServersUnblockAllDialogue");
+
+            string? changes = ServerListChanges.Describe(
+                _jsonSetting.GetLastServerListByGameMode(),
+                currentServers,
+                _localizationService.GetLocaleValue("SyncServersAdded"),
+                _localizationService.GetLocaleValue("SyncServersRemoved"),
+                _localizationService.GetLocaleValue("SyncServersUnchanged"),
+                _localizationService.GetLocaleValue("SyncServersMore")
+                );
+
+            if (changes != null)
+            {
+                message += "\n\n" + changes;
             }
 
             // This only happens on successful load and sync on startup or game switch
             await _messageBoxService.ShowMessageBoxAsync(
                     _localizationService.GetLocaleValue("MessageBoxInfoTitle"),
-                    _localizationService.GetLocaleValue("SyncServersUnblockAllDialogue"),
+                    message,
                     MsBox.Avalonia.Enums.Icon.Setting
                     );
 
@@ -1188,7 +1226,11 @@ namespace ServerPickerX.Views
             }
 
             // Presets are left as they are. A server Valve takes away for a while comes back the
-            // way the user left it, and one that is new starts out blocked (PresetModel.BlocksServer)
+            // way the user left it, and one that is new starts out blocked (PresetModel.BlocksServer).
+            // The list is only kept once the update went through, so one that could not finish is
+            // described the same way again next time, and it goes out in the same write as the revision
+            _jsonSetting.RememberServerListByGameMode(currentServers);
+
             await _jsonSetting.SetRevisionByGameModeAsync(fetchedRevision);
         }
 

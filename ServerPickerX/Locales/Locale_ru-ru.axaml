@@ -24,6 +24,10 @@
   <x:String x:Key="ResetFirewallToolTip">Удалить все правила брандмауэра, созданные приложением</x:String>
   <x:String x:Key="MessageBoxInfoTitle">информация</x:String>
   <x:String x:Key="SyncServersUnblockAllDialogue">Valve обновила данные серверов. Все заблокированные серверы будут разблокированы для синхронизации новых данных. Ваши пресеты сохраняют свой выбор и блокируют новые серверы, пока вы их не разрешите, а последний выбранный пресет будет применен снова, если он доступен.</x:String>
+  <x:String x:Key="SyncServersAdded">Добавлены:</x:String>
+  <x:String x:Key="SyncServersRemoved">Удалены:</x:String>
+  <x:String x:Key="SyncServersUnchanged">На этот раз серверы не добавлялись и не удалялись.</x:String>
+  <x:String x:Key="SyncServersMore">…и ещё {0}</x:String>
   <x:String x:Key="NewVersionDialogue">Доступна новая версия! Перейти к релизам?</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Пожалуйста, выберите хотя бы один сервер для блокировки.</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Пожалуйста, выберите хотя бы один сервер для разблокировки.</x:String>

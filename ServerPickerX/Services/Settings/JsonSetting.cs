@@ -53,6 +53,11 @@ namespace ServerPickerX.Settings
         // still has something to sort by, since no probe of it can succeed
         public virtual Dictionary<string, Dictionary<string, string>> last_server_readings { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
+        // The servers each game listed when its server data was last up to date, as Valve's
+        // code and the name on the card. When Valve updates its data, the new list is compared
+        // with this one so the message can say which servers came and went
+        public virtual Dictionary<string, Dictionary<string, string>> last_server_lists { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
         // Minutes between automatic re-pings, 0 disables the timer
         public virtual int auto_refresh_minutes { get; set; } = 0;
 
@@ -181,6 +186,9 @@ namespace ServerPickerX.Settings
                 cluster_switch_notice_hidden = localSettings.cluster_switch_notice_hidden;
                 last_server_readings = localSettings.last_server_readings != null
                     ? new Dictionary<string, Dictionary<string, string>>(localSettings.last_server_readings, StringComparer.OrdinalIgnoreCase)
+                    : new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+                last_server_lists = localSettings.last_server_lists != null
+                    ? new Dictionary<string, Dictionary<string, string>>(localSettings.last_server_lists, StringComparer.OrdinalIgnoreCase)
                     : new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
                 blocked_server_keys = localSettings.blocked_server_keys != null
                     ? new Dictionary<string, List<string>>(localSettings.blocked_server_keys, StringComparer.OrdinalIgnoreCase)
@@ -400,6 +408,46 @@ namespace ServerPickerX.Settings
                 last_server_readings[game_mode] = new Dictionary<string, string>(readings, StringComparer.OrdinalIgnoreCase);
             }
         }
+
+        public Dictionary<string, string> GetLastServerListByGameMode()
+        {
+            if (string.IsNullOrWhiteSpace(game_mode))
+            {
+                return new Dictionary<string, string>(StringComparer.Ordinal);
+            }
+
+            return last_server_lists.TryGetValue(game_mode, out Dictionary<string, string>? servers) && servers != null
+                ? new Dictionary<string, string>(servers, StringComparer.Ordinal)
+                : new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+
+        // Keeps the list in memory only, and says whether it differs from the one kept before,
+        // so the caller writes the file only when something actually changed. The list is the
+        // same on almost every launch, and a launch should not cost a write for nothing
+        public bool RememberServerListByGameMode(Dictionary<string, string> servers)
+        {
+            if (string.IsNullOrWhiteSpace(game_mode))
+            {
+                return false;
+            }
+
+            last_server_lists ??= new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+
+            if (last_server_lists.TryGetValue(game_mode, out Dictionary<string, string>? stored)
+                && stored != null
+                && SameServers(stored, servers))
+            {
+                return false;
+            }
+
+            last_server_lists[game_mode] = new Dictionary<string, string>(servers, StringComparer.Ordinal);
+
+            return true;
+        }
+
+        private static bool SameServers(Dictionary<string, string> stored, Dictionary<string, string> servers)
+            => stored.Count == servers.Count
+                && servers.All(server => stored.TryGetValue(server.Key, out string? name) && name == server.Value);
 
         public async Task SetServerReadingsByGameModeAsync(Dictionary<string, string> readings)
         {

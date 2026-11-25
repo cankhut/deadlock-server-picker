@@ -24,6 +24,10 @@
   <x:String x:Key="ResetFirewallToolTip">このアプリが作成したファイアウォールルールをすべて削除</x:String>
   <x:String x:Key="MessageBoxInfoTitle">情報</x:String>
   <x:String x:Key="SyncServersUnblockAllDialogue">Valve によってサーバーデータが更新されました。新しいサーバーデータと同期するために、ブロックされていたすべてのサーバーのブロックが解除されます。プリセットの選択内容はそのまま保持され、新しいサーバーは許可するまでブロックされます。可能であれば最後に選択したプリセットが再適用されます。</x:String>
+  <x:String x:Key="SyncServersAdded">追加：</x:String>
+  <x:String x:Key="SyncServersRemoved">削除：</x:String>
+  <x:String x:Key="SyncServersUnchanged">今回はサーバーの追加や削除はありませんでした。</x:String>
+  <x:String x:Key="SyncServersMore">…ほか{0}件</x:String>
   <x:String x:Key="NewVersionDialogue">新バージョンがリリースされました！リリース一覧へどうぞ。</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">こんにちは！ブロックするサーバーを少なくとも1つ選択してください。</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">ブロックを解除したいサーバーを少なくとも1つ選択してください。</x:String>

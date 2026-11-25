@@ -24,6 +24,10 @@
   <x:String x:Key="ResetFirewallToolTip">Delete every firewall rule this app created</x:String>
   <x:String x:Key="MessageBoxInfoTitle">Info</x:String>
   <x:String x:Key="SyncServersUnblockAllDialogue">Server data just got updated by Valve! All blocked servers will be unblocked in order to synchronize new server data. Your presets keep their choices and block new servers until you allow them, and the last selected preset will be reapplied if available.</x:String>
+  <x:String x:Key="SyncServersAdded">Added:</x:String>
+  <x:String x:Key="SyncServersRemoved">Removed:</x:String>
+  <x:String x:Key="SyncServersUnchanged">No servers were added or removed this time.</x:String>
+  <x:String x:Key="SyncServersMore">…and {0} more</x:String>
   <x:String x:Key="NewVersionDialogue">New version available! Go to releases?</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Hey! Please select at least one server to block</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Hey! Please select at least one server to unblock</x:String>

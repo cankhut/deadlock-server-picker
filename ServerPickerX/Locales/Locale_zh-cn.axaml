@@ -24,6 +24,10 @@
   <x:String x:Key="ResetFirewallToolTip">删除本应用创建的所有防火墙规则</x:String>
   <x:String x:Key="MessageBoxInfoTitle">信息</x:String>
   <x:String x:Key="SyncServersUnblockAllDialogue">Valve 刚刚更新了服务器数据。所有被屏蔽的服务器都将被解除屏蔽，以便同步新的服务器数据。你的预设会保留原有选择，新服务器在你允许之前会一直被屏蔽；如果可用，最后选中的预设将被重新应用。</x:String>
+  <x:String x:Key="SyncServersAdded">新增：</x:String>
+  <x:String x:Key="SyncServersRemoved">移除：</x:String>
+  <x:String x:Key="SyncServersUnchanged">这次没有新增或移除任何服务器。</x:String>
+  <x:String x:Key="SyncServersMore">…以及另外 {0} 个</x:String>
   <x:String x:Key="NewVersionDialogue">新版本已发布！前往发布页面？</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">嘿！请至少选择一个服务器进行屏蔽。</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">嘿！请至少选择一个服务器进行解锁。</x:String>

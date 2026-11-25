@@ -24,6 +24,10 @@
   <x:String x:Key="ResetFirewallToolTip">Usuń wszystkie reguły zapory utworzone przez tę aplikację</x:String>
   <x:String x:Key="MessageBoxInfoTitle">informacje</x:String>
   <x:String x:Key="SyncServersUnblockAllDialogue">Valve właśnie zaktualizowało dane serwerów. Wszystkie zablokowane serwery zostaną odblokowane, aby zsynchronizować nowe dane serwera. Twoje presety zachowują swoje ustawienia i blokują nowe serwery, dopóki na nie nie zezwolisz, a ostatnio wybrany preset zostanie zastosowany ponownie, jeśli jest dostępny.</x:String>
+  <x:String x:Key="SyncServersAdded">Dodane:</x:String>
+  <x:String x:Key="SyncServersRemoved">Usunięte:</x:String>
+  <x:String x:Key="SyncServersUnchanged">Tym razem nie dodano ani nie usunięto żadnego serwera.</x:String>
+  <x:String x:Key="SyncServersMore">…i {0} więcej</x:String>
   <x:String x:Key="NewVersionDialogue">Nowa wersja dostępna! Przejdź do wydań?</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Hej! Wybierz co najmniej jeden serwer do zablokowania</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Hej! Wybierz co najmniej jeden serwer do odblokowania</x:String>

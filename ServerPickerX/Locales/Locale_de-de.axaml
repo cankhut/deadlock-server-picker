@@ -24,6 +24,10 @@
   <x:String x:Key="ResetFirewallToolTip">Alle von dieser App erstellten Firewallregeln löschen</x:String>
   <x:String x:Key="MessageBoxInfoTitle">Info</x:String>
   <x:String x:Key="SyncServersUnblockAllDialogue">Die Serverdaten wurden gerade von Valve aktualisiert! Alle blockierten Server werden entsperrt, um die neuen Serverdaten zu synchronisieren. Deine Presets behalten ihre Auswahl und blockieren neue Server, bis du sie erlaubst, und das zuletzt ausgewählte Preset wird erneut angewendet, falls verfügbar.</x:String>
+  <x:String x:Key="SyncServersAdded">Hinzugefügt:</x:String>
+  <x:String x:Key="SyncServersRemoved">Entfernt:</x:String>
+  <x:String x:Key="SyncServersUnchanged">Diesmal wurden keine Server hinzugefügt oder entfernt.</x:String>
+  <x:String x:Key="SyncServersMore">…und {0} weitere</x:String>
   <x:String x:Key="NewVersionDialogue">Neue Version verfügbar! Zu den Veröffentlichungen?</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Hey! Bitte wähle mindestens einen Server zum Blockieren aus.</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Bitte wählen Sie mindestens einen Server aus, um die Entsperrung aufzuheben.</x:String>

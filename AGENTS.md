@@ -69,6 +69,12 @@ rules it returns null and the saved state stands. **Remove App Rules** also remo
 comment that no listed server owns (relays Valve has since dropped). The comment must stay plain letters,
 digits and `_`, or iptables quotes it in `-S` output and the app stops recognising its own rules;
 `LinuxFirewallServiceTests` guards that.
+- **The "servers updated" message lists what changed.** `SyncServersAsync` compares Valve's new list
+with `last_server_lists` (per game, Valve's code to the name on the card) through `ServerListChanges`,
+by code, so a rename is not news, and at most 10 names per list. The list is saved only once the update
+went through, in the same write as the revision, so an update that could not finish is described the
+same way next time; when the revision is unchanged it is saved only if it differs. With no saved list
+yet, the first launch of this version, the message reads as it always did.
 - **Hidden notices come back from Settings.** **Show Hidden Notices** clears every `*_notice_hidden`
 flag through `JsonSetting.ShowHiddenNoticesAgainAsync`, and is greyed out while `HasHiddenNotices()` is
 false. A new notice with a "don't show again" choice must be added to both, or it can never be undone.
