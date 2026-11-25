@@ -29,6 +29,8 @@
   <x:String x:Key="SyncServersUnchanged">Diesmal wurden keine Server hinzugefügt oder entfernt.</x:String>
   <x:String x:Key="SyncServersMore">…und {0} weitere</x:String>
   <x:String x:Key="NewVersionDialogue">Neue Version verfügbar! Zu den Veröffentlichungen?</x:String>
+  <x:String x:Key="UpdateAvailableToolTip">Version {0} ist verfügbar. Klicken, um die Release-Seite zu öffnen</x:String>
+  <x:String x:Key="PreReleaseAvailableToolTip">Vorabversion {0} ist verfügbar. Klicken, um die Release-Seite zu öffnen</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Hey! Bitte wähle mindestens einen Server zum Blockieren aus.</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Bitte wählen Sie mindestens einen Server aus, um die Entsperrung aufzuheben.</x:String>
   <x:String x:Key="PendingOperationDialogue">Moment! Ein Vorgang läuft bereits. Bitte warten Sie...</x:String>

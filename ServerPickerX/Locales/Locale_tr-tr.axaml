@@ -29,6 +29,8 @@
   <x:String x:Key="SyncServersUnchanged">Bu sefer hiçbir sunucu eklenmedi veya kaldırılmadı.</x:String>
   <x:String x:Key="SyncServersMore">…ve {0} tane daha</x:String>
   <x:String x:Key="NewVersionDialogue">Yeni sürüm yayınlandı! Güncelle?</x:String>
+  <x:String x:Key="UpdateAvailableToolTip">{0} sürümü çıktı. Sürümler sayfasını açmak için tıkla</x:String>
+  <x:String x:Key="PreReleaseAvailableToolTip">{0} ön sürümü çıktı. Sürümler sayfasını açmak için tıkla</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Lütfen engellenecek en az bir sunucu seç</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Lütfen engeli kaldırılacak en az bir sunucu seçin</x:String>
   <x:String x:Key="PendingOperationDialogue">Zaten bekleyen bir işlem var. Lütfen bekleyin...</x:String>

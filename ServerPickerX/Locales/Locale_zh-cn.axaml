@@ -29,6 +29,8 @@
   <x:String x:Key="SyncServersUnchanged">这次没有新增或移除任何服务器。</x:String>
   <x:String x:Key="SyncServersMore">…以及另外 {0} 个</x:String>
   <x:String x:Key="NewVersionDialogue">新版本已发布！前往发布页面？</x:String>
+  <x:String x:Key="UpdateAvailableToolTip">版本 {0} 已发布，点击打开发布页面</x:String>
+  <x:String x:Key="PreReleaseAvailableToolTip">预发布版本 {0} 已发布，点击打开发布页面</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">嘿！请至少选择一个服务器进行屏蔽。</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">嘿！请至少选择一个服务器进行解锁。</x:String>
   <x:String x:Key="PendingOperationDialogue">目前有待处理的操作。请稍候……</x:String>

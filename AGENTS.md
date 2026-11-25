@@ -75,6 +75,12 @@ by code, so a rename is not news, and at most 10 names per list. The list is sav
 went through, in the same write as the revision, so an update that could not finish is described the
 same way next time; when the revision is unchanged it is saved only if it differs. With no saved list
 yet, the first launch of this version, the message reads as it always did.
+- **The download button in the footer** sits left of the theme button and shows only while the update
+check (Settings, on by default, skipped in debug builds) finds a newer release; it opens the releases
+page. `VersionService.PickUpdate` prefers the newest normal release over a newer pre-release. Its dot uses
+GitHub's own colours, `SpxReleaseBrush` (green, "Latest") and `SpxPreReleaseBrush` (amber,
+"Pre-release"), light and dark values from GitHub's palette, with a ring in the colour behind the button.
+The startup prompt is unchanged and still announces whatever release is newest, pre-releases included.
 - **Hidden notices come back from Settings.** **Show Hidden Notices** clears every `*_notice_hidden`
 flag through `JsonSetting.ShowHiddenNoticesAgainAsync`, and is greyed out while `HasHiddenNotices()` is
 false. A new notice with a "don't show again" choice must be added to both, or it can never be undone.

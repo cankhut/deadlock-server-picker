@@ -418,6 +418,8 @@ namespace ServerPickerX.Views
             ConfigureGameWatcher();
 
             await _versionService.CheckVersionAsync();
+
+            FooterButtons.Instance?.ShowUpdate(_versionService.AvailableUpdate);
         }
 
         // Re-probes on a timer when the user has opted in. Blocked servers are skipped

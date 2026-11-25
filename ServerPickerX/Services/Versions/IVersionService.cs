@@ -9,5 +9,8 @@ namespace ServerPickerX.Services.Versions
     public interface IVersionService
     {
         Task CheckVersionAsync();
+
+        // What the last check found for the download button in the footer, or null
+        AvailableRelease? AvailableUpdate { get; }
     }
 }

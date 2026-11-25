@@ -18,13 +18,17 @@ namespace ServerPickerX.Services.Versions
         // This fork publishes its own builds, so updates are checked against it
         private const string ReleasesApiUrl = "https://api.github.com/repos/cankhut/deadlock-server-picker/releases";
 
-        private const string ReleasesPageUrl = "https://github.com/cankhut/deadlock-server-picker/releases";
+        public const string ReleasesPageUrl = "https://github.com/cankhut/deadlock-server-picker/releases";
 
         private readonly ILoggerService _logger;
         private readonly IMessageBoxService _messageBoxService;
         private readonly ILocalizationService _localizationService;
         private readonly HttpClient _httpClient;
         private readonly JsonSetting _jsonSettings;
+
+        // The release the download button in the footer points at. Null while this build is up
+        // to date, when checking is turned off in Settings, or when GitHub could not be reached
+        public AvailableRelease? AvailableUpdate { get; private set; }
 
         public VersionService(
             ILoggerService logger,
@@ -43,6 +47,8 @@ namespace ServerPickerX.Services.Versions
 
         public async Task CheckVersionAsync()
         {
+            AvailableUpdate = null;
+
             if (MainWindow.IsDebugBuild || !_jsonSettings.version_check_on_startup)
             {
                 return;
@@ -69,6 +75,15 @@ namespace ServerPickerX.Services.Versions
 
                 var jsonArray = (JsonArray?)await JsonArray.ParseAsync(res);
 
+                Version currentVersion = new(Assembly.GetEntryAssembly()!.GetName()!.Version!.ToString(3));
+
+                // Worked out before anything below can return early, so the button shows even
+                // when the prompt has nothing to say
+                if (jsonArray != null)
+                {
+                    AvailableUpdate = PickUpdate(jsonArray, currentVersion);
+                }
+
                 if (jsonArray?[0]?["tag_name"] == null)
                 {
                     return;
@@ -78,8 +93,6 @@ namespace ServerPickerX.Services.Versions
                 {
                     return;
                 }
-
-                Version currentVersion = new(Assembly.GetEntryAssembly()!.GetName()!.Version!.ToString(3));
 
                 // Compared as versions rather than strings, so a tag suffix such as
                 // "-cardui.1" cannot make an up to date build look outdated
@@ -102,6 +115,54 @@ namespace ServerPickerX.Services.Versions
                 await _messageBoxService.ShowMessageBoxAsync("Error", ex.Message);
             }
         }
+
+        // The release the download button points at: the newest normal release newer than this
+        // build, or failing that the newest pre-release newer than it. A normal release wins over
+        // a newer pre-release, because it is the one most people should take. Drafts, entries
+        // without a readable tag and anything that is not a release object are passed over
+        public static AvailableRelease? PickUpdate(JsonArray releases, Version currentVersion)
+        {
+            Version? newestRelease = null;
+            Version? newestPreRelease = null;
+
+            foreach (JsonNode? node in releases)
+            {
+                if (node is not JsonObject release
+                    || IsTrue(release["draft"])
+                    || release["tag_name"] is not JsonValue tag
+                    || !tag.TryGetValue(out string? tagName)
+                    || !TryParseReleaseVersion(tagName, out Version? version)
+                    || version == null
+                    || version <= currentVersion)
+                {
+                    continue;
+                }
+
+                if (IsTrue(release["prerelease"]))
+                {
+                    if (newestPreRelease == null || version > newestPreRelease)
+                    {
+                        newestPreRelease = version;
+                    }
+                }
+                else if (newestRelease == null || version > newestRelease)
+                {
+                    newestRelease = version;
+                }
+            }
+
+            if (newestRelease != null)
+            {
+                return new AvailableRelease(newestRelease, false);
+            }
+
+            return newestPreRelease != null
+                ? new AvailableRelease(newestPreRelease, true)
+                : null;
+        }
+
+        private static bool IsTrue(JsonNode? node)
+            => node is JsonValue value && value.TryGetValue(out bool flag) && flag;
 
         // Accepts tags like "v1.2.0" and "v1.2.0-cardui.1", comparing only the numbers
         private static bool TryParseReleaseVersion(string tagName, out Version? version)

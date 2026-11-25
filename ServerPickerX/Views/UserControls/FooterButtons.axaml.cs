@@ -1,8 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using ServerPickerX.Services.DependencyInjection;
+using ServerPickerX.Services.Localizations;
 using ServerPickerX.Services.Processes;
 using ServerPickerX.Services.Themes;
+using ServerPickerX.Services.Versions;
 using ServerPickerX.Settings;
 using ServerPickerX.Views;
 
@@ -24,6 +26,9 @@ public partial class FooterButtons : UserControl
     public static FooterButtons? Instance { get; private set; }
 
     private readonly JsonSetting _jsonSetting;
+
+    // The release the download button points at, kept for its tip
+    private AvailableRelease? _availableUpdate;
 
     public FooterButtons()
     {
@@ -58,6 +63,46 @@ public partial class FooterButtons : UserControl
         ThemeIcon = ThemeService.GetIcon(currentTheme);
 
         ToolTip.SetTip(ThemeBtn, $"Theme: {currentTheme}");
+    }
+
+    // Shows the download button while a newer release is out, and hides it otherwise. It stays
+    // in place after the update prompt is closed, for anyone who clicked Ok without reading it
+    public void ShowUpdate(AvailableRelease? update)
+    {
+        _availableUpdate = update;
+
+        UpdateBtn.IsVisible = update != null;
+
+        if (update == null)
+        {
+            return;
+        }
+
+        UpdateDot.Classes.Set("pre-release", update.IsPreRelease);
+
+        RefreshUpdateTip();
+    }
+
+    // Also called when the language changes, so the tip follows it
+    public void RefreshUpdateTip()
+    {
+        if (_availableUpdate == null)
+        {
+            return;
+        }
+
+        string tip = ServiceLocator
+            .GetRequiredService<ILocalizationService>()
+            .GetLocaleValue(_availableUpdate.IsPreRelease ? "PreReleaseAvailableToolTip" : "UpdateAvailableToolTip");
+
+        ToolTip.SetTip(UpdateBtn, string.Format(tip, _availableUpdate.Version));
+    }
+
+    private async void UpdateBtn_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        await ServiceLocator
+            .GetRequiredService<IProcessService>()
+            .OpenUrl(VersionService.ReleasesPageUrl);
     }
 
     private async void GithubBtn_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

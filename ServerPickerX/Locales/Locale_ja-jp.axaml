@@ -29,6 +29,8 @@
   <x:String x:Key="SyncServersUnchanged">今回はサーバーの追加や削除はありませんでした。</x:String>
   <x:String x:Key="SyncServersMore">…ほか{0}件</x:String>
   <x:String x:Key="NewVersionDialogue">新バージョンがリリースされました！リリース一覧へどうぞ。</x:String>
+  <x:String x:Key="UpdateAvailableToolTip">バージョン {0} が公開されています。クリックでリリースページを開きます</x:String>
+  <x:String x:Key="PreReleaseAvailableToolTip">プレリリース {0} が公開されています。クリックでリリースページを開きます</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">こんにちは！ブロックするサーバーを少なくとも1つ選択してください。</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">ブロックを解除したいサーバーを少なくとも1つ選択してください。</x:String>
   <x:String x:Key="PendingOperationDialogue">おっと！既に処理が実行されています。しばらくお待ちください。</x:String>

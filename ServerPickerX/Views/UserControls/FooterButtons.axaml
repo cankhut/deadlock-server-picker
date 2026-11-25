@@ -6,12 +6,53 @@
              mc:Ignorable="d"
              x:CompileBindings="False"
              x:Class="ServerPickerX.FooterButtons">
+    <UserControl.Styles>
+        <!-- The dot on the download button: GitHub's green for a release, its amber for a
+             pre-release. The ring around it takes the colour of whatever is behind the button,
+             so the dot reads as cut out of the icon rather than stuck on top of it -->
+        <Style Selector="Ellipse.update-dot">
+            <Setter Property="Fill" Value="{DynamicResource SpxReleaseBrush}" />
+            <Setter Property="Stroke" Value="{DynamicResource SpxChromeBrush}" />
+            <Setter Property="StrokeThickness" Value="1.5" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Stroke" Duration="0:0:0.12" Easing="CubicEaseOut" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Ellipse.update-dot.pre-release">
+            <Setter Property="Fill" Value="{DynamicResource SpxPreReleaseBrush}" />
+        </Style>
+        <Style Selector="Button.icon-btn:pointerover Ellipse.update-dot">
+            <Setter Property="Stroke" Value="{DynamicResource SpxControlHoverBrush}" />
+        </Style>
+        <Style Selector="Button.icon-btn:pressed Ellipse.update-dot">
+            <Setter Property="Stroke" Value="{DynamicResource SpxControlPressedBrush}" />
+        </Style>
+    </UserControl.Styles>
+
     <StackPanel
         VerticalAlignment="Center"
         HorizontalAlignment="Right"
         Orientation="Horizontal"
         Margin="0,0,10,0"
         Spacing="2">
+        <!-- Only shown when a newer release is out, see ShowUpdate -->
+        <Button x:Name="UpdateBtn"
+                Classes="icon-btn"
+                IsVisible="False"
+                Click="UpdateBtn_Click">
+            <Panel>
+                <ContentControl i:Attached.Icon="fa-download" />
+                <Ellipse x:Name="UpdateDot"
+                         Classes="update-dot"
+                         Width="9"
+                         Height="9"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Bottom"
+                         Margin="0,0,-3,-3" />
+            </Panel>
+        </Button>
         <Button x:Name="ThemeBtn"
                 Classes="icon-btn"
                 i:Attached.Icon="{Binding ThemeIcon, RelativeSource={RelativeSource AncestorType=UserControl}}"

@@ -56,6 +56,10 @@
             <SolidColorBrush x:Key="SpxWarnBrush" Color="#D9A441" />
             <SolidColorBrush x:Key="SpxBadBrush" Color="#DB6E66" />
             <SolidColorBrush x:Key="SpxBadSoftBrush" Color="#26DB6E66" />
+
+            <!-- GitHub's own colours for a release marked Latest and one marked Pre-release -->
+            <SolidColorBrush x:Key="SpxReleaseBrush" Color="#3FB950" />
+            <SolidColorBrush x:Key="SpxPreReleaseBrush" Color="#D29922" />
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Light">
@@ -108,6 +112,9 @@
             <SolidColorBrush x:Key="SpxWarnBrush" Color="#8F6413" />
             <SolidColorBrush x:Key="SpxBadBrush" Color="#B24B42" />
             <SolidColorBrush x:Key="SpxBadSoftBrush" Color="#26B24B42" />
+
+            <SolidColorBrush x:Key="SpxReleaseBrush" Color="#1A7F37" />
+            <SolidColorBrush x:Key="SpxPreReleaseBrush" Color="#9A6700" />
         </ResourceDictionary>
 
     </ResourceDictionary.ThemeDictionaries>
